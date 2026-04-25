@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProductCard } from '@/components/ProductCard';
 import * as motion from "framer-motion/client";
+import { formatStrapiUrl } from '@/lib/utils';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://192.168.1.50:1337';
 
@@ -45,8 +46,8 @@ async function getProductsByCategory(categorySlug: string) {
         name: p.name,
         slug: p.slug,
         basePrice: p.base_price || 1000,
-        imageUrl: image ? (image.startsWith('http') ? image : `${STRAPI_URL}${image}`) : null,
-        videoUrl: video ? (video.startsWith('http') ? video : `${STRAPI_URL}${video}`) : null,
+        imageUrl: formatStrapiUrl(image),
+        videoUrl: formatStrapiUrl(video),
       };
     });
   } catch (e) {

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { HeroCarousel } from "@/components/HeroCarousel"
 import { CategoryCarousel } from "@/components/CategoryCarousel"
+import { formatStrapiUrl } from "@/lib/utils"
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://192.168.1.50:1337';
 
@@ -55,8 +56,8 @@ async function getProductsByCategory(categorySlug: string) {
         name: p.name,
         slug: p.slug,
         basePrice: p.base_price || 1000,
-        imageUrl: image ? (image.startsWith('http') ? image : `${STRAPI_URL}${image}`) : null,
-        videoUrl: video ? (video.startsWith('http') ? video : `${STRAPI_URL}${video}`) : null,
+        imageUrl: formatStrapiUrl(image),
+        videoUrl: formatStrapiUrl(video),
       };
     });
 
@@ -85,18 +86,14 @@ export default async function Home() {
   const ourStoryBody = home.ourStoryBody || "Uncompromising quality and sustainable extraction trace the journey of every diamond from the deep earth to your hands.";
   const ourStoryCTA = home.ourStoryCTA || "Read Our Heritage";
   const carouselImages = home.Carousel_image && home.Carousel_image.length > 0
-    ? home.Carousel_image.map((img: any) => img.url.startsWith('http') ? img.url : `${STRAPI_URL}${img.url}`)
+    ? home.Carousel_image.map((img: any) => formatStrapiUrl(img.url))
     : [];
 
-  const ourStoryBG = home.OurstoryBG?.url
-    ? (home.OurstoryBG.url.startsWith('http') ? home.OurstoryBG.url : `${STRAPI_URL}${home.OurstoryBG.url}`)
-    : null;
+  const ourStoryBG = formatStrapiUrl(home.OurstoryBG?.url);
 
   const pricingHeader = home.PricingHeader || "Clarity in Craft, Honesty in Pricing";
   const pricingText = home.PricingText || "At Fiora Lennox, transparency is as intrinsic as the clarity of our stones.";
-  const pricingBG = home.PricingBG?.url
-    ? (home.PricingBG.url.startsWith('http') ? home.PricingBG.url : `${STRAPI_URL}${home.PricingBG.url}`)
-    : null;
+  const pricingBG = formatStrapiUrl(home.PricingBG?.url);
 
   return (
     <main className="flex flex-col min-h-screen selection:bg-foreground selection:text-background transition-colors duration-500">

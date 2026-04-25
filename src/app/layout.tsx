@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CartProvider } from "@/context/CartContext";
+import { formatStrapiUrl } from "@/lib/utils";
 import "./globals.css";
 
 const inter = Inter({
@@ -44,8 +45,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const branding = await getBrandingData();
-  const logoBlack = branding?.logoBlack?.url ? `${STRAPI_URL}${branding.logoBlack.url}` : null;
-  const logoWhite = branding?.logoWhite?.url ? `${STRAPI_URL}${branding.logoWhite.url}` : null;
+  const logoBlack = formatStrapiUrl(branding?.logoBlack?.url);
+  const logoWhite = formatStrapiUrl(branding?.logoWhite?.url);
 
   return (
     <html

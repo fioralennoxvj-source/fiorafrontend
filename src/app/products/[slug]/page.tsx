@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
+import { formatStrapiUrl } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Play, Heart, Share2, Info } from 'lucide-react'
 import { useCart } from "@/context/CartContext"
@@ -28,6 +29,7 @@ export default function ProductPage() {
         query.append('populate[2]', 'variants.variant_video');
         query.append('populate[3]', 'category');
         query.append('populate[4]', 'main_image');
+        query.append('populate[5]', 'gallery');
         
         const res = await fetch(`${STRAPI_URL}/api/products?${query.toString()}`);
         const json = await res.json();
@@ -74,23 +76,40 @@ export default function ProductPage() {
   }, [product, selectedMetal]);
 
   const media = useMemo(() => {
-    if (!activeVariant) return [];
+    if (!product) return [];
     const items: { type: 'image' | 'video'; url: string }[] = [];
-    
-    // Add variant images first
-    if (activeVariant.variant_images) {
-      activeVariant.variant_images.forEach((img: any) => {
-        items.push({ type: 'image', url: `${STRAPI_URL}${img.url}` });
-      });
+    const seenUrls = new Set<string>();
+
+    const addMedia = (url: string, type: 'image' | 'video' = 'image') => {
+      const formattedUrl = formatStrapiUrl(url);
+      if (formattedUrl && !seenUrls.has(formattedUrl)) {
+        items.push({ type, url: formattedUrl });
+        seenUrls.add(formattedUrl);
+      }
+    };
+
+    // 1. Add variant images first (most specific)
+    if (activeVariant?.variant_images) {
+      activeVariant.variant_images.forEach((img: any) => addMedia(img.url));
     }
 
-    // Add video last
-    if (activeVariant.variant_video?.url) {
-      items.push({ type: 'video', url: `${STRAPI_URL}${activeVariant.variant_video.url}` });
+    // 2. Add variant video
+    if (activeVariant?.variant_video?.url) {
+      addMedia(activeVariant.variant_video.url, 'video');
+    }
+
+    // 3. Add product main image
+    if (product.main_image?.url) {
+      addMedia(product.main_image.url);
+    }
+
+    // 4. Add product gallery images
+    if (product.gallery) {
+      product.gallery.forEach((img: any) => addMedia(img.url));
     }
 
     return items;
-  }, [activeVariant]);
+  }, [product, activeVariant]);
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-background text-foreground">
@@ -219,7 +238,7 @@ export default function ProductPage() {
                       name: `${product.name} (${selectedMetal})`,
                       price: product.base_price,
                       slug: product.slug,
-                      imageUrl: activeVariant.variant_images?.[0]?.url ? `${STRAPI_URL}${activeVariant.variant_images[0].url}` : null
+                      imageUrl: activeVariant.variant_images?.[0]?.url ? formatStrapiUrl(activeVariant.variant_images[0].url) : (product.main_image?.url ? formatStrapiUrl(product.main_image.url) : null)
                     });
                   }
                 }}
